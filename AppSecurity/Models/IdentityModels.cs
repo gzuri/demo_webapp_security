@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using AppSecurity.Models.Concrete;
 
 namespace AppSecurity.Models
 {
@@ -23,6 +24,23 @@ namespace AppSecurity.Models
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
+            /// Should be enabled by default, if optimization is needed then turn it off.
+            Configuration.AutoDetectChangesEnabled = true;
+            /// We do not use proxies for lazy loading nor change-tracking.
+            Configuration.ProxyCreationEnabled = false;
+            /// Should always be false!
+            Configuration.LazyLoadingEnabled = false;
+        }
+
+        public DbSet<Order> Orders { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            Database.SetInitializer<ApplicationDbContext>(null);
+
+            modelBuilder.Entity<Order>().HasKey(x => x.OrderId);
+            modelBuilder.Entity<Order>().HasRequired(x => x.User);
         }
 
         public static ApplicationDbContext Create()
